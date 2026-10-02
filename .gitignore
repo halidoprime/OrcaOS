@@ -1,0 +1,6 @@
+# Kickstart build directory
+kickstart-fedora-workstation/
+
+# Log files
+*.log
+*.iso
