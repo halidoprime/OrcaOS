@@ -1,12 +1,26 @@
 # Configure installation method
-url --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-44&arch=x86_64"
-repo --name=fedora-updates --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f44&arch=x86_64" --cost=0
-repo --name=fedora-cisco-openh264 --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-cisco-openh264-44&arch=x86_64" --install
+# Pinned to the dl.fedoraproject.org master instead of mirrorlists: the
+# updates-released-f44 mirrorlist contains stale mirrors serving 404s for
+# repodata (comps/updateinfo), which makes anaconda abort with
+# "No more mirrors to try" (SourceSetupError). The master is verified complete.
+url --url="https://dl.fedoraproject.org/pub/fedora/linux/releases/44/Everything/x86_64/os/"
+repo --name=fedora-updates --baseurl="https://dl.fedoraproject.org/pub/fedora/linux/updates/44/Everything/x86_64/" --cost=0
+# NOTE: the "orca-" repo IDs below are intentional. Anaconda reads the host's
+# /etc/yum.repos.d in no-virt mode and disables every system repo; a kickstart
+# repo whose ID collides with a system repo ([google-chrome],
+# [fedora-cisco-openh264]) is reconfigured but never re-enabled, so its
+# metadata is never loaded -> "No match for argument: google-chrome-stable".
+# Unique IDs cannot collide. --install is dropped on purpose: the target gets
+# google-chrome.repo from the google-chrome-stable RPM (gpgkey added in %post)
+# and fedora-cisco-openh264.repo from the fedora-repos RPM.
+# codecs.fedoraproject.org is the single canonical source the
+# fedora-cisco-openh264 mirrorlist resolves to (verified repomd 200).
+repo --name=orca-cisco-openh264 --baseurl="https://codecs.fedoraproject.org/openh264/44/x86_64/"
 repo --name=rpmfusion-free --mirrorlist="https://mirrors.rpmfusion.org/mirrorlist?repo=free-fedora-44&arch=x86_64"
 repo --name=rpmfusion-free-updates --mirrorlist="https://mirrors.rpmfusion.org/mirrorlist?repo=free-fedora-updates-released-44&arch=x86_64" --cost=0
 repo --name=rpmfusion-nonfree --mirrorlist="https://mirrors.rpmfusion.org/mirrorlist?repo=nonfree-fedora-44&arch=x86_64"
 repo --name=rpmfusion-nonfree-updates --mirrorlist="https://mirrors.rpmfusion.org/mirrorlist?repo=nonfree-fedora-updates-released-44&arch=x86_64" --cost=0
-repo --name=google-chrome --install --baseurl="https://dl.google.com/linux/chrome/rpm/stable/x86_64" --cost=0
+repo --name=orca-google-chrome --baseurl="https://dl.google.com/linux/chrome/rpm/stable/x86_64" --cost=0
 
 # no-virt (dirinstall) mode: anaconda ignores storage commands entirely.
 # This single "part /" line exists only so livemedia-creator can size the
@@ -48,7 +62,15 @@ authselect enable-feature with-faillock
 # --- TELL THE VM TO TURN OFF WHEN DONE ---
 # shutdown  # disabled for --no-virt runs: would power off the build host
 # Package Selection
-%packages
+# --ignoremissing is required with the F44/dnf5 backend: the -excludes below
+# collide with mandatory members of @core/@standard/@xfce-desktop
+# (openssh-server, sssd-common, sssd-kcm, sssd-proxy, abrt-cli, abrt-desktop,
+# nfs-utils). dnf5 reports each collision ("matches only excluded packages")
+# and anaconda turns resolve warnings into a fatal NonCriticalInstallationError
+# in cmdline mode. --ignoremissing sets libdnf5 skip_unavailable=True, which
+# silently skips excluded group members the way dnf4 did. Every other package
+# name below was verified to resolve in F44 (name or provides).
+%packages --ignoremissing
 -openssh-server
 -gssproxy
 -nfs-utils

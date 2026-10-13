@@ -1,8 +1,8 @@
 
 ###<<<<<For Virt insttalation>>>>>###
-sudo livemedia-creator --ks Main.ks --make-iso --iso Fedora-Everything-netinst-x86_64-44-1.7.iso --image-name Test.iso --releasever 44 --image-size-align 2048 --resultdir ~/fedora-HyprLand-spin/output/deneme
+sudo livemedia-creator --ks Main.ks --make-iso --iso Fedora-Everything-netinst-x86_64-44-1.7.iso --image-name Test.iso --releasever 44 --image-size-align 2048 --resultdir ../output/deneme
 ###<<<<<For Virt insttalation>>>>>###
 
 ###<<<<<No Virt insttalation>>>>>###
-sudo livemedia-creator --no-virt --ks Main-novirt.ks --make-iso --iso Fedora-Everything-netinst-x86_64-44-1.7.iso --image-name Test.iso --releasever 44 --image-size-align 2048 --resultdir ~/fedora-HyprLand-spin/output/deneme
+sudo livemedia-creator --no-virt --ks Main-novirt.ks --make-iso --iso Fedora-Everything-netinst-x86_64-44-1.7.iso --image-name Test.iso --releasever 44 --image-size-align 2048 --resultdir ../output/deneme
 ###<<<<<No Virt insttalation>>>>>###
